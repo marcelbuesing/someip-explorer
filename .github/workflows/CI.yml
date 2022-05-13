@@ -49,5 +49,5 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: someipsd-explorer-${{ matrix.target }}
-          path: target/release/someip-explorer
+          path: target/${{ matrix.target }}/release/someip-explorer
           retention-days: 5
