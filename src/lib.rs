@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Result};
 use async_stream::try_stream;
 use futures::stream::Stream;
-use someip_parse::{SomeIpHeader, SomeIpSdEntry, SomeIpSdHeader};
+use someip_parse::{SdEntry, SdHeader, SomeIpHeader};
 use std::{
     io::Cursor,
     net::{Ipv4Addr, SocketAddrV4},
@@ -77,7 +77,7 @@ impl SomeIpClient {
 
     fn find_service_message(opt: &FindServiceOpt) -> Result<Vec<u8>, anyhow::Error> {
         // Init someip sd header
-        let find_service = SomeIpSdEntry::new_find_service_entry(
+        let find_service = SdEntry::new_find_service_entry(
             0,
             0,
             0,
@@ -90,8 +90,8 @@ impl SomeIpClient {
         )
         .map_err(|err| anyhow!("Failed to create find_service entry: {:?}", err))?;
         let entries = vec![find_service];
-        let someip_sd_header = SomeIpSdHeader::new(false, entries, vec![]);
-        let someip_sd_header_bytes = someip_sd_header.to_bytes();
+        let someip_sd_header = SdHeader::new(false, entries, vec![]);
+        let someip_sd_header_bytes = someip_sd_header.to_bytes_vec().unwrap();
 
         // Init someip header
         let length = (4 + 1 + 1 + 1 + 1 + someip_sd_header_bytes.len()) as u32;
@@ -105,7 +105,7 @@ impl SomeIpClient {
     pub async fn find_service(
         &self,
         opt: &FindServiceOpt,
-    ) -> Result<impl Stream<Item = Result<(SomeIpHeader, SomeIpSdHeader)>>> {
+    ) -> Result<impl Stream<Item = Result<(SomeIpHeader, SdHeader)>>> {
         let inaddr_any = SocketAddrV4::new(Ipv4Addr::new(0, 0, 0, 0), 0);
 
         // Setup reading socket
@@ -133,7 +133,7 @@ impl SomeIpClient {
                     .map_err(|err| anyhow!("Failed to read someip header: {:?}", err))?;
 
                 if someip_header.is_someip_sd() {
-                    let someip_sd = SomeIpSdHeader::read(&mut cursor)
+                    let someip_sd = SdHeader::read(&mut cursor)
                         .map_err(|err| anyhow!("Failed to read someip sd header: {:?}", err))?;
 
                     yield (someip_header, someip_sd);

@@ -1,10 +1,13 @@
-use std::net::{Ipv4Addr, Ipv6Addr, SocketAddrV4};
-
 use anyhow::{anyhow, Result};
 use colored::Colorize;
 use futures::{pin_mut, StreamExt};
-use someip_parse::{SomeIpSdEntry, SomeIpSdOption};
-use someipsd::{FindServiceOpt, SomeIpClient};
+use someip_explorer::{FindServiceOpt, SomeIpClient};
+use someip_parse::{
+    sd_entries::{EventgroupEntry, ServiceEntry},
+    sd_options::*,
+    SdEntry, SdOption,
+};
+use std::net::{Ipv4Addr, Ipv6Addr, SocketAddrV4};
 use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
@@ -77,9 +80,9 @@ async fn main() -> Result<()> {
                     someip_header.request_id,
                     someip_header.interface_version,
                     someip_header.return_code,
-                    someip_sd_header.reboot,
-                    someip_sd_header.unicast,
-                    someip_sd_header.explicit_initial_data_control
+                    someip_sd_header.flags.reboot,
+                    someip_sd_header.flags.unicast,
+                    someip_sd_header.flags.explicit_initial_data_control
                 );
 
                 println!("\n{}", "Entries:\n".underline());
@@ -97,9 +100,9 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-fn display_entry(entry: &SomeIpSdEntry) {
+fn display_entry(entry: &SdEntry) {
     match entry {
-        SomeIpSdEntry::Service {
+        SdEntry::Service(ServiceEntry {
             _type,
             index_first_option_run: _,
             index_second_option_run: _,
@@ -110,7 +113,7 @@ fn display_entry(entry: &SomeIpSdEntry) {
             major_version,
             ttl,
             minor_version,
-        } => {
+        }) => {
             println!(
                 "{} Service Id: {} Instance Id: {} Version: {} TTL: {}",
                 format!("{:?}", _type).cyan(),
@@ -120,7 +123,7 @@ fn display_entry(entry: &SomeIpSdEntry) {
                 format!("{}", ttl).yellow(),
             );
         }
-        SomeIpSdEntry::Eventgroup {
+        SdEntry::Eventgroup(EventgroupEntry {
             _type,
             index_first_option_run,
             index_second_option_run,
@@ -133,71 +136,80 @@ fn display_entry(entry: &SomeIpSdEntry) {
             initial_data_requested,
             counter,
             eventgroup_id,
-        } => todo!(),
+        }) => println!("SD entry: TODO display"),
     }
 }
 
-fn display_option(option: &SomeIpSdOption) {
+fn display_option(option: &SdOption) {
     match option {
-        SomeIpSdOption::Configuration {
-            configuration_string: _,
-        } => todo!(),
-        SomeIpSdOption::LoadBalancing { priority, weight } => {
+        SdOption::Configuration(cfg) => println!("{:#?}", cfg),
+        SdOption::LoadBalancing(LoadBalancingOption {
+            discardable,
+            priority,
+            weight,
+        }) => {
             println!("LoadBalancing priority: {} weight: {}", priority, weight)
         }
-        SomeIpSdOption::Ipv4Endpoint {
+        SdOption::Ipv4Endpoint(Ipv4EndpointOption {
             ipv4_address,
             transport_protocol,
-            transport_protocol_number: _,
-        } => println!(
-            "Ipv4Endpoint {} via {:?}",
+            port,
+        }) => println!(
+            "Ipv4Endpoint {}:{} via {:?}",
             Ipv4Addr::from(*ipv4_address),
+            port,
             transport_protocol
         ),
-        SomeIpSdOption::Ipv6Endpoint {
+        SdOption::Ipv6Endpoint(Ipv6EndpointOption {
             ipv6_address,
             transport_protocol,
-            transport_protocol_number: _,
-        } => println!(
-            "Ipv6Endpoint {} via {:?}",
+            port,
+        }) => println!(
+            "Ipv6Endpoint {}:{} via {:?}",
             Ipv6Addr::from(*ipv6_address),
+            port,
             transport_protocol
         ),
-        SomeIpSdOption::Ipv4Multicast {
+        SdOption::Ipv4Multicast(Ipv4MulticastOption {
             ipv4_address,
             transport_protocol,
-            transport_protocol_number: _,
-        } => println!(
-            "Ipv4Multicast {} via {:?}",
+            port,
+        }) => println!(
+            "Ipv4Multicast {}:{} via {:?}",
             Ipv4Addr::from(*ipv4_address),
+            port,
             transport_protocol
         ),
-        SomeIpSdOption::Ipv6Multicast {
+        SdOption::Ipv6Multicast(Ipv6MulticastOption {
             ipv6_address,
             transport_protocol,
-            transport_protocol_number: _,
-        } => println!(
-            "Ipv6Multicast {} via {:?}",
+            port,
+        }) => println!(
+            "Ipv6Multicast {}:{} via {:?}",
             Ipv6Addr::from(*ipv6_address),
+            port,
             transport_protocol
         ),
-        SomeIpSdOption::Ipv4SdEndpoint {
+        SdOption::Ipv4SdEndpoint(Ipv4SdEndpointOption {
             ipv4_address,
             transport_protocol,
-            transport_protocol_number: _,
-        } => println!(
-            "Ipv4SdEndpoint {} via {:?}",
+            port,
+        }) => println!(
+            "Ipv4SdEndpoint {}:{} via {:?}",
             Ipv4Addr::from(*ipv4_address),
+            port,
             transport_protocol
         ),
-        SomeIpSdOption::Ipv6SdEndpoint {
+        SdOption::Ipv6SdEndpoint(Ipv6SdEndpointOption {
             ipv6_address,
             transport_protocol,
-            transport_protocol_number: _,
-        } => println!(
-            "Ipv6SdEndpoint {} via {:?}",
+            port,
+        }) => println!(
+            "Ipv6SdEndpoint {}:{} via {:?}",
             Ipv6Addr::from(*ipv6_address),
+            port,
             transport_protocol
         ),
+        SdOption::UnknownDiscardable(_) => println!("UnknownDiscardable"),
     }
 }

@@ -1,7 +1,7 @@
 [package]
-name = "someipsd"
+name = "someip-explorer"
 version = "0.1.0"
-edition = "2018"
+edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -10,7 +10,7 @@ ansi_term = "0.12"
 anyhow = "1.0"
 async-stream = "0.3"
 colored = "2.0"
-someip_parse = { git = "https://github.com/marcelbuesing/someip-parse-rs.git", branch = "service-discovery" }
+someip_parse = { git = "https://github.com/JulianSchmid/someip-parse-rs.git", ref = "8900527b1cff518462c77095a86c9639998271a0"}
 structopt = "0.3"
 tokio = { version = "1.14", features = ["net", "macros", "rt-multi-thread"] }
 futures = "0.3"

@@ -338,12 +338,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9def91fd1e018fe007022791f865d0ccc9b3a0d5001e01aabb8b40e46000afb5"
 
 [[package]]
-name = "someip_parse"
-version = "0.4.0"
-source = "git+https://github.com/marcelbuesing/someip-parse-rs.git?branch=service-discovery#d1f8b4d67db92bcbf3fa2c85a9ff7d3dcb258ecd"
-
-[[package]]
-name = "someipsd"
+name = "someip-explorer"
 version = "0.1.0"
 dependencies = [
  "ansi_term 0.12.1",
@@ -355,6 +350,11 @@ dependencies = [
  "structopt",
  "tokio",
 ]
+
+[[package]]
+name = "someip_parse"
+version = "0.4.0"
+source = "git+https://github.com/JulianSchmid/someip-parse-rs.git#8900527b1cff518462c77095a86c9639998271a0"
 
 [[package]]
 name = "strsim"
