@@ -26,8 +26,9 @@ jobs:
       - uses: actions-rs/cargo@v1
         name: Release Build
         with:
+          use-cross: true
           command: build
-          args: --release
+          args: --release --target ${{ matrix.target }}
 
       # - uses: actions-rs/cargo@v1
       #   name: Run Tests
